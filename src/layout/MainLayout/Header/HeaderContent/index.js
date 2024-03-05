@@ -1,6 +1,6 @@
 // material-ui
 import { Box, IconButton, Link, useMediaQuery } from '@mui/material';
-import { GithubOutlined } from '@ant-design/icons';
+import { InstagramOutlined, DiscordOutlined, FacebookOutlined } from '@ant-design/icons';
 
 // project import
 import Search from './Search';
@@ -18,17 +18,43 @@ const HeaderContent = () => {
       {!matchesXs && <Search />}
       {matchesXs && <Box sx={{ width: '100%', ml: 1 }} />}
 
-      <IconButton
-        component={Link}
-        href="https://github.com/codedthemes/mantis-free-react-admin-template"
-        target="_blank"
-        disableRipple
-        color="secondary"
-        title="Download Free Version"
-        sx={{ color: 'text.primary', bgcolor: 'grey.100' }}
-      >
-        <GithubOutlined />
-      </IconButton>
+      <Box sx={{ display: "flex", gap: "8px" }}>
+        <IconButton
+          component={Link}
+          href="https://facebook.com"
+          target="_blank"
+          disableRipple
+          color="secondary"
+          title="Facebook"
+          sx={{ color: 'text.primary', bgcolor: 'grey.100' }}
+        >
+          <FacebookOutlined style={{ color: "#4267B2" }} />
+        </IconButton>
+
+        <IconButton
+          component={Link}
+          href="https://instagram.com"
+          target="_blank"
+          disableRipple
+          color="secondary"
+          title="Instagram"
+          sx={{ color: 'text.primary', bgcolor: 'grey.100' }}
+        >
+          <InstagramOutlined style={{ color: "#FCAF45" }} />
+        </IconButton>
+
+        <IconButton
+          component={Link}
+          href="https://discord.com"
+          target="_blank"
+          disableRipple
+          color="secondary"
+          title="Dicord"
+          sx={{ color: 'text.primary', bgcolor: 'grey.100' }}
+        >
+          <DiscordOutlined style={{ color: "#424549" }} />
+        </IconButton>
+      </Box>
 
       <Notification />
       {!matchesXs && <Profile />}

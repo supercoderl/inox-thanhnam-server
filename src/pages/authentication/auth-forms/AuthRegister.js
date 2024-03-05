@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Link as RouterLink } from 'react-router-dom';
+import { Link as RouterLink, useNavigate } from 'react-router-dom';
 
 // material-ui
 import {
@@ -29,12 +29,15 @@ import { strengthColor, strengthIndicator } from 'utils/password-strength';
 
 // assets
 import { EyeOutlined, EyeInvisibleOutlined } from '@ant-design/icons';
+import axiosInstance from 'config/axios';
+import { toast } from 'react-toastify';
 
 // ============================|| FIREBASE - REGISTER ||============================ //
 
 const AuthRegister = () => {
   const [level, setLevel] = useState();
   const [showPassword, setShowPassword] = useState(false);
+  const navigate = useNavigate();
   const handleClickShowPassword = () => {
     setShowPassword(!showPassword);
   };
@@ -58,21 +61,33 @@ const AuthRegister = () => {
         initialValues={{
           firstname: '',
           lastname: '',
-          email: '',
-          company: '',
+          username: '',
+          phone: '',
           password: '',
           submit: null
         }}
         validationSchema={Yup.object().shape({
-          firstname: Yup.string().max(255).required('First Name is required'),
-          lastname: Yup.string().max(255).required('Last Name is required'),
-          email: Yup.string().email('Must be a valid email').max(255).required('Email is required'),
-          password: Yup.string().max(255).required('Password is required')
+          firstname: Yup.string().max(255).required('Vui lòng điền tên'),
+          lastname: Yup.string().max(255).required('Vui lòng điền họ'),
+          username: Yup.string().max(255).required('Vui lòng điền tên đăng nhập'),
+          password: Yup.string().max(255).required('Vui lòng điền mật khẩu'),
+          phone: Yup.string().min(10, 'Số điện thoại yêu cầu 10 chữ số').required('Vui lòng nhập số điện thoại')
         })}
         onSubmit={async (values, { setErrors, setStatus, setSubmitting }) => {
           try {
             setStatus({ success: false });
             setSubmitting(false);
+            await axiosInstance.post("Auth/register", values).then((response) => {
+              const result = response.data;
+              if(result && result.success) {
+                setStatus({ success: true });
+                toast.success(result.message);
+                setTimeout(() => {
+                  navigate("/login");
+                }, 600);
+              }
+              else toast.error(result.message);
+            }).catch((error) => console.log(error)).finally(() => setSubmitting(false));
           } catch (err) {
             console.error(err);
             setStatus({ success: false });
@@ -86,7 +101,7 @@ const AuthRegister = () => {
             <Grid container spacing={3}>
               <Grid item xs={12} md={6}>
                 <Stack spacing={1}>
-                  <InputLabel htmlFor="firstname-signup">First Name*</InputLabel>
+                  <InputLabel htmlFor="firstname-signup">Tên*</InputLabel>
                   <OutlinedInput
                     id="firstname-login"
                     type="firstname"
@@ -107,7 +122,7 @@ const AuthRegister = () => {
               </Grid>
               <Grid item xs={12} md={6}>
                 <Stack spacing={1}>
-                  <InputLabel htmlFor="lastname-signup">Last Name*</InputLabel>
+                  <InputLabel htmlFor="lastname-signup">Họ*</InputLabel>
                   <OutlinedInput
                     fullWidth
                     error={Boolean(touched.lastname && errors.lastname)}
@@ -129,50 +144,51 @@ const AuthRegister = () => {
               </Grid>
               <Grid item xs={12}>
                 <Stack spacing={1}>
-                  <InputLabel htmlFor="company-signup">Company</InputLabel>
+                  <InputLabel htmlFor="phone-signup">Số điện thoại</InputLabel>
                   <OutlinedInput
                     fullWidth
-                    error={Boolean(touched.company && errors.company)}
-                    id="company-signup"
-                    value={values.company}
-                    name="company"
+                    error={Boolean(touched.phone && errors.phone)}
+                    id="phone-signup"
+                    value={values.phone}
+                    name="phone"
+                    type="tel"
                     onBlur={handleBlur}
                     onChange={handleChange}
-                    placeholder="Demo Inc."
+                    placeholder="0123456789"
                     inputProps={{}}
                   />
-                  {touched.company && errors.company && (
-                    <FormHelperText error id="helper-text-company-signup">
-                      {errors.company}
+                  {touched.phone && errors.phone && (
+                    <FormHelperText error id="helper-text-phone-signup">
+                      {errors.phone}
                     </FormHelperText>
                   )}
                 </Stack>
               </Grid>
               <Grid item xs={12}>
                 <Stack spacing={1}>
-                  <InputLabel htmlFor="email-signup">Email Address*</InputLabel>
+                  <InputLabel htmlFor="username-signup">Tên đăng nhập*</InputLabel>
                   <OutlinedInput
                     fullWidth
-                    error={Boolean(touched.email && errors.email)}
-                    id="email-login"
-                    type="email"
-                    value={values.email}
-                    name="email"
+                    error={Boolean(touched.username && errors.username)}
+                    id="username-login"
+                    type="username"
+                    value={values.username}
+                    name="username"
                     onBlur={handleBlur}
                     onChange={handleChange}
                     placeholder="demo@company.com"
                     inputProps={{}}
                   />
-                  {touched.email && errors.email && (
-                    <FormHelperText error id="helper-text-email-signup">
-                      {errors.email}
+                  {touched.username && errors.username && (
+                    <FormHelperText error id="helper-text-username-signup">
+                      {errors.username}
                     </FormHelperText>
                   )}
                 </Stack>
               </Grid>
               <Grid item xs={12}>
                 <Stack spacing={1}>
-                  <InputLabel htmlFor="password-signup">Password</InputLabel>
+                  <InputLabel htmlFor="password-signup">Mật khẩu</InputLabel>
                   <OutlinedInput
                     fullWidth
                     error={Boolean(touched.password && errors.password)}
@@ -222,14 +238,11 @@ const AuthRegister = () => {
               </Grid>
               <Grid item xs={12}>
                 <Typography variant="body2">
-                  By Signing up, you agree to our &nbsp;
-                  <Link variant="subtitle2" component={RouterLink} to="#">
-                    Terms of Service
-                  </Link>
-                  &nbsp; and &nbsp;
-                  <Link variant="subtitle2" component={RouterLink} to="#">
-                    Privacy Policy
-                  </Link>
+                  Bằng cách đăng ký, bạn đồng ý với
+                  <Link variant="subtitle2" component={RouterLink} to="#"> Điều khoản </Link>
+                  và
+                  <Link variant="subtitle2" component={RouterLink} to="#"> Chính sách quyền riêng tư </Link>
+                  của chúng tôi.
                 </Typography>
               </Grid>
               {errors.submit && (
@@ -240,13 +253,13 @@ const AuthRegister = () => {
               <Grid item xs={12}>
                 <AnimateButton>
                   <Button disableElevation disabled={isSubmitting} fullWidth size="large" type="submit" variant="contained" color="primary">
-                    Create Account
+                    Tạo tài khoản
                   </Button>
                 </AnimateButton>
               </Grid>
               <Grid item xs={12}>
                 <Divider>
-                  <Typography variant="caption">Sign up with</Typography>
+                  <Typography variant="caption">Đăng ký với</Typography>
                 </Divider>
               </Grid>
               <Grid item xs={12}>

@@ -1,9 +1,8 @@
 import React from 'react';
-import { Link as RouterLink } from 'react-router-dom';
+import { Link as RouterLink, useNavigate } from 'react-router-dom';
 
 // material-ui
 import {
-  Button,
   Checkbox,
   Divider,
   FormControlLabel,
@@ -15,7 +14,8 @@ import {
   InputLabel,
   OutlinedInput,
   Stack,
-  Typography
+  Typography,
+  Button
 } from '@mui/material';
 
 // third party
@@ -28,11 +28,15 @@ import AnimateButton from 'components/@extended/AnimateButton';
 
 // assets
 import { EyeOutlined, EyeInvisibleOutlined } from '@ant-design/icons';
+import axiosInstance from 'config/axios';
+import { toast } from "react-toastify";
+import AuthService from 'services/auth';
 
 // ============================|| FIREBASE - LOGIN ||============================ //
 
 const AuthLogin = () => {
   const [checked, setChecked] = React.useState(false);
+  const navigate = useNavigate();
 
   const [showPassword, setShowPassword] = React.useState(false);
   const handleClickShowPassword = () => {
@@ -47,18 +51,31 @@ const AuthLogin = () => {
     <>
       <Formik
         initialValues={{
-          email: 'info@codedthemes.com',
+          username: 'info@codedthemes.com',
           password: '123456',
-          submit: null
         }}
         validationSchema={Yup.object().shape({
-          email: Yup.string().email('Must be a valid email').max(255).required('Email is required'),
-          password: Yup.string().max(255).required('Password is required')
+          username: Yup.string().max(255).required('Vui lòng điền tên đăng nhập'),
+          password: Yup.string().max(255).required('Vui lòng điền mật khẩu')
         })}
         onSubmit={async (values, { setErrors, setStatus, setSubmitting }) => {
           try {
             setStatus({ success: false });
-            setSubmitting(false);
+            setSubmitting(true);
+            await axiosInstance.post("Auth/login", values).then((response) => {
+              const result = response.data;
+              if (result && result.success) {
+                setStatus({ success: true });
+                toast.success(result.message);
+                AuthService.saveAccessToken(result.data?.token?.accessToken);
+                AuthService.saveRefreshToken(result.data?.refreshToken?.refreshToken);
+                AuthService.saveUser(JSON.stringify(result.data?.userResult));
+                setTimeout(() => {
+                  navigate("/");
+                }, 600);
+              }
+              else toast.error(result.message);
+            }).catch((error) => console.log(error)).finally(() => setSubmitting(false));
           } catch (err) {
             setStatus({ success: false });
             setErrors({ submit: err.message });
@@ -71,28 +88,28 @@ const AuthLogin = () => {
             <Grid container spacing={3}>
               <Grid item xs={12}>
                 <Stack spacing={1}>
-                  <InputLabel htmlFor="email-login">Email Address</InputLabel>
+                  <InputLabel htmlFor="username-login">Tên đăng nhập</InputLabel>
                   <OutlinedInput
-                    id="email-login"
-                    type="email"
-                    value={values.email}
-                    name="email"
+                    id="username-login"
+                    type="text"
+                    value={values.username}
+                    name="username"
                     onBlur={handleBlur}
                     onChange={handleChange}
-                    placeholder="Enter email address"
+                    placeholder="Tên đăng nhập"
                     fullWidth
-                    error={Boolean(touched.email && errors.email)}
+                    error={Boolean(touched.username && errors.username)}
                   />
-                  {touched.email && errors.email && (
-                    <FormHelperText error id="standard-weight-helper-text-email-login">
-                      {errors.email}
+                  {touched.username && errors.username && (
+                    <FormHelperText error id="standard-weight-helper-text-username-login">
+                      {errors.username}
                     </FormHelperText>
                   )}
                 </Stack>
               </Grid>
               <Grid item xs={12}>
                 <Stack spacing={1}>
-                  <InputLabel htmlFor="password-login">Password</InputLabel>
+                  <InputLabel htmlFor="password-login">Mật khẩu</InputLabel>
                   <OutlinedInput
                     fullWidth
                     error={Boolean(touched.password && errors.password)}
@@ -137,10 +154,10 @@ const AuthLogin = () => {
                         size="small"
                       />
                     }
-                    label={<Typography variant="h6">Keep me sign in</Typography>}
+                    label={<Typography variant="h6">Lưu thông tin đăng nhập</Typography>}
                   />
                   <Link variant="h6" component={RouterLink} to="" color="text.primary">
-                    Forgot Password?
+                    Quên mật khẩu?
                   </Link>
                 </Stack>
               </Grid>
@@ -152,13 +169,13 @@ const AuthLogin = () => {
               <Grid item xs={12}>
                 <AnimateButton>
                   <Button disableElevation disabled={isSubmitting} fullWidth size="large" type="submit" variant="contained" color="primary">
-                    Login
+                    Đăng nhập
                   </Button>
                 </AnimateButton>
               </Grid>
               <Grid item xs={12}>
                 <Divider>
-                  <Typography variant="caption"> Login with</Typography>
+                  <Typography variant="caption"> Đăng nhập với</Typography>
                 </Divider>
               </Grid>
               <Grid item xs={12}>

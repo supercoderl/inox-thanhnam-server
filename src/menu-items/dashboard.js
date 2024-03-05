@@ -15,7 +15,7 @@ const dashboard = {
   children: [
     {
       id: 'dashboard',
-      title: 'Dashboard',
+      title: 'Bảng điều khiển',
       type: 'item',
       url: '/dashboard/default',
       icon: icons.DashboardOutlined,
