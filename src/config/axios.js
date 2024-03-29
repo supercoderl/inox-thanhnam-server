@@ -2,7 +2,7 @@ import axios from 'axios';
 import AuthService from 'services/auth';
 
 const axiosInstance = axios.create({
-    baseURL: 'http://localhost:5112/api/',
+    baseURL: 'https://inox.somee.com/api/',
 });
 
 axiosInstance.interceptors.request.use(
