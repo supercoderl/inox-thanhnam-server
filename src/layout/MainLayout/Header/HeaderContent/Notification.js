@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 // material-ui
 import { useTheme } from '@mui/material/styles';
@@ -14,6 +14,7 @@ import {
   ListItemAvatar,
   ListItemText,
   ListItemSecondaryAction,
+  ListItemIcon,
   Paper,
   Popper,
   Typography,
@@ -25,7 +26,10 @@ import MainCard from 'components/MainCard';
 import Transitions from 'components/@extended/Transitions';
 
 // assets
-import { BellOutlined, CloseOutlined, GiftOutlined, MessageOutlined, SettingOutlined } from '@ant-design/icons';
+import { BellOutlined, CloseOutlined, GiftOutlined, StarFilled, MessageOutlined, CaretDownOutlined, } from '@ant-design/icons';
+import { dateFormatterV2, timeAgo } from 'utils/date';
+import { useNavigate } from 'react-router-dom';
+import axiosInstance from 'config/axios';
 
 // sx styles
 const avatarSX = {
@@ -46,12 +50,23 @@ const actionSX = {
 
 // ==============================|| HEADER CONTENT - NOTIFICATION ||============================== //
 
-const Notification = () => {
+const Notification = ({ notifications, count }) => {
   const theme = useTheme();
   const matchesXs = useMediaQuery(theme.breakpoints.down('md'));
+  const navigate = useNavigate();
 
   const anchorRef = useRef(null);
   const [open, setOpen] = useState(false);
+  const notificationRef = useRef(null);
+  const [isAtBottom, setIsAtBottom] = useState(false);
+
+  const handleScroll = () => {
+    if (notificationRef.current) {
+      notificationRef.current.scrollTop += 100;
+      notificationRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
   const handleToggle = () => {
     setOpen((prevOpen) => !prevOpen);
   };
@@ -62,6 +77,34 @@ const Notification = () => {
     }
     setOpen(false);
   };
+
+  const handleRouteToOrderDetail = async (orderID, notificationID, type) => {
+    if (type === "order") {
+      await axiosInstance.put(`Notification/update-notification/${notificationID}`, { notificationID });
+      navigate(`application/order/review/${orderID}`);
+      window.location.reload();
+    }
+  }
+
+  useEffect(() => {
+    const handleScroll = () => {
+      if (notificationRef.current) {
+        const container = notificationRef.current;
+        const isBottom = container.scrollTop + container.clientHeight === container.scrollHeight;
+        setIsAtBottom(isBottom);
+      }
+    };
+
+    if (notificationRef.current) {
+      notificationRef.current.addEventListener('scroll', handleScroll);
+    }
+
+    return () => {
+      if (notificationRef.current) {
+        notificationRef.current.removeEventListener('scroll', handleScroll);
+      }
+    };
+  }, []);
 
   const iconBackColorOpen = 'grey.300';
   const iconBackColor = 'grey.100';
@@ -78,7 +121,7 @@ const Notification = () => {
         aria-haspopup="true"
         onClick={handleToggle}
       >
-        <Badge badgeContent={4} color="primary">
+        <Badge badgeContent={count} color="primary">
           <BellOutlined />
         </Badge>
       </IconButton>
@@ -133,138 +176,99 @@ const Notification = () => {
                         py: 0.5,
                         '& .MuiAvatar-root': avatarSX,
                         '& .MuiListItemSecondaryAction-root': { ...actionSX, position: 'relative' }
-                      }
+                      },
+                      maxHeight: 400,
+                      overflowY: "auto",
+                      position: 'relative',
+                      scrollBehavior: "smooth"
                     }}
+                    ref={notificationRef}
                   >
-                    <ListItemButton>
-                      <ListItemAvatar>
-                        <Avatar
-                          sx={{
-                            color: 'success.main',
-                            bgcolor: 'success.lighter'
-                          }}
-                        >
-                          <GiftOutlined />
-                        </Avatar>
-                      </ListItemAvatar>
-                      <ListItemText
-                        primary={
-                          <Typography variant="h6">
-                            It&apos;s{' '}
-                            <Typography component="span" variant="subtitle1">
-                              Cristina danny&apos;s
-                            </Typography>{' '}
-                            birthday today.
-                          </Typography>
-                        }
-                        secondary="2 min ago"
-                      />
-                      <ListItemSecondaryAction>
-                        <Typography variant="caption" noWrap>
-                          3:00 AM
-                        </Typography>
-                      </ListItemSecondaryAction>
-                    </ListItemButton>
+                    {
+                      notifications && notifications.length > 0 ?
+                        notifications.slice(0, 10).map((item, index) => {
+                          return (
+                            <ListItemButton
+                              key={index}
+                              onClick={() => handleRouteToOrderDetail(item?.objectID, item?.notificationID, item?.type)}
+                              sx={{ background: !item?.readAt ? "rgba(0, 0, 0, 0.02)" : "none" }}
+                            >
+                              {
+                                !item?.readAt ?
+                                  <ListItemIcon>
+                                    <StarFilled />
+                                  </ListItemIcon>
+                                  :
+                                  null
+                              }
+                              <ListItemAvatar>
+                                <Avatar
+                                  sx=
+                                  {
+                                    item?.type === "order" ?
+                                      {
+                                        color: 'success.main',
+                                        bgcolor: 'success.lighter'
+                                      }
+                                      :
+                                      {
+                                        color: 'primary.light',
+                                        bgcolor: 'secondary.lighter'
+                                      }
+                                  }
+                                >
+                                  {item?.type === "order" ? <GiftOutlined /> : <MessageOutlined />}
+                                </Avatar>
+                              </ListItemAvatar>
+                              <ListItemText
+                                primary={
+                                  <Typography variant="h6">
+                                    {item?.message}
+                                  </Typography>
+                                }
+                                secondary={timeAgo(item?.createdAt)}
+                              />
+                              <ListItemSecondaryAction>
+                                <Typography variant="caption" noWrap>
+                                  {dateFormatterV2(item?.createdAt, 'h:mm A')}
+                                </Typography>
+                              </ListItemSecondaryAction>
+                            </ListItemButton>
+                          )
+                        })
+                        :
+                        <ListItemButton sx={{ textAlign: 'center', py: `${12}px !important` }}>
+                          <ListItemText
+                            primary={
+                              <Typography variant="h6">
+                                Không có thông báo
+                              </Typography>
+                            }
+                          />
+                        </ListItemButton>
+                    }
                     <Divider />
-                    <ListItemButton>
-                      <ListItemAvatar>
-                        <Avatar
-                          sx={{
-                            color: 'primary.main',
-                            bgcolor: 'primary.lighter'
-                          }}
-                        >
-                          <MessageOutlined />
-                        </Avatar>
-                      </ListItemAvatar>
-                      <ListItemText
-                        primary={
-                          <Typography variant="h6">
-                            <Typography component="span" variant="subtitle1">
-                              Aida Burg
-                            </Typography>{' '}
-                            commented your post.
-                          </Typography>
-                        }
-                        secondary="5 August"
-                      />
-                      <ListItemSecondaryAction>
-                        <Typography variant="caption" noWrap>
-                          6:00 PM
-                        </Typography>
-                      </ListItemSecondaryAction>
-                    </ListItemButton>
-                    <Divider />
-                    <ListItemButton>
-                      <ListItemAvatar>
-                        <Avatar
-                          sx={{
-                            color: 'error.main',
-                            bgcolor: 'error.lighter'
-                          }}
-                        >
-                          <SettingOutlined />
-                        </Avatar>
-                      </ListItemAvatar>
-                      <ListItemText
-                        primary={
-                          <Typography variant="h6">
-                            Your Profile is Complete &nbsp;
-                            <Typography component="span" variant="subtitle1">
-                              60%
-                            </Typography>{' '}
-                          </Typography>
-                        }
-                        secondary="7 hours ago"
-                      />
-                      <ListItemSecondaryAction>
-                        <Typography variant="caption" noWrap>
-                          2:45 PM
-                        </Typography>
-                      </ListItemSecondaryAction>
-                    </ListItemButton>
-                    <Divider />
-                    <ListItemButton>
-                      <ListItemAvatar>
-                        <Avatar
-                          sx={{
-                            color: 'primary.main',
-                            bgcolor: 'primary.lighter'
-                          }}
-                        >
-                          C
-                        </Avatar>
-                      </ListItemAvatar>
-                      <ListItemText
-                        primary={
-                          <Typography variant="h6">
-                            <Typography component="span" variant="subtitle1">
-                              Cristina Danny
-                            </Typography>{' '}
-                            invited to join{' '}
-                            <Typography component="span" variant="subtitle1">
-                              Meeting.
-                            </Typography>
-                          </Typography>
-                        }
-                        secondary="Daily scrum meeting time"
-                      />
-                      <ListItemSecondaryAction>
-                        <Typography variant="caption" noWrap>
-                          9:10 PM
-                        </Typography>
-                      </ListItemSecondaryAction>
-                    </ListItemButton>
-                    <Divider />
-                    <ListItemButton sx={{ textAlign: 'center', py: `${12}px !important` }}>
-                      <ListItemText
-                        primary={
-                          <Typography variant="h6" color="primary">
-                            View All
-                          </Typography>
-                        }
-                      />
-                    </ListItemButton>
+                    {
+                      !isAtBottom && <ListItemButton
+                        sx={{
+                          py: `${8}px !important`,
+                          position: 'fixed',
+                          bottom: 0,
+                          width: "100%",
+                          background: 'white',
+                          '&:hover': {
+                            background: "white",
+                          },
+                          border: '1px solid rgba(0, 0, 0, 0.1)',
+                          justifyContent: "center"
+                        }}
+                        onClick={handleScroll}
+                      >
+                        <ListItemIcon>
+                          <CaretDownOutlined style={{ fontSize: 20 }} />
+                        </ListItemIcon>
+                      </ListItemButton>
+                    }
                   </List>
                 </MainCard>
               </ClickAwayListener>

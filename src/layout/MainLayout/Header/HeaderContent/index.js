@@ -1,17 +1,54 @@
 // material-ui
 import { Box, IconButton, Link, useMediaQuery } from '@mui/material';
 import { InstagramOutlined, DiscordOutlined, FacebookOutlined } from '@ant-design/icons';
+import { HubConnectionBuilder, LogLevel } from '@microsoft/signalr';
 
 // project import
 import Search from './Search';
 import Profile from './Profile';
 import Notification from './Notification';
 import MobileSection from './MobileSection';
+import AuthService from 'services/auth';
+import { useEffect, useState } from 'react';
+import axiosInstance from 'config/axios';
 
 // ==============================|| HEADER - CONTENT ||============================== //
 
 const HeaderContent = () => {
   const matchesXs = useMediaQuery((theme) => theme.breakpoints.down('md'));
+  const user = JSON.parse(AuthService.getUser());
+  const [connection, setConnection] = useState();
+  const [notifications, setNotifications] = useState([]);
+  const [notificationCount, setNotificationCount] = useState(0);
+
+  const joinRoom = async (user, room) => {
+    const connection = new HubConnectionBuilder().withUrl("http://localhost:5112/notify").configureLogging(LogLevel.Information).build();
+    connection.on("ReceiveMessage", (user, message, result) => {
+      setNotifications(messages => [result, ...messages]);
+    });
+    await connection.start();
+    await connection.invoke("JoinRoom", { user, room });
+    setConnection(connection);
+  }
+
+  const getNotifications = async () => {
+    await axiosInstance.get("Notification/notifications").then((response) => {
+      const result = response.data;
+      if(!result) return;
+      else if(result.success && result.data && result.data.length > 0)
+      {
+        result.data.map(item => setNotifications(notifications => [...notifications, item]));
+        setNotificationCount(result.data.filter(x => !x.readAt).length);
+        localStorage.setItem("notificationCount", result.data.filter(x => !x.readAt).length);
+      }
+    }).catch((error) => console.log("Get notifications: ", error));
+  }
+
+  useEffect(() => {
+    getNotifications();
+    joinRoom(user?.fullname || "Anonymous", "notification");
+    console.log(connection);
+  }, []);
 
   return (
     <>
@@ -56,7 +93,7 @@ const HeaderContent = () => {
         </IconButton>
       </Box>
 
-      <Notification />
+      <Notification notifications={notifications} count={notificationCount} />
       {!matchesXs && <Profile />}
       {matchesXs && <MobileSection />}
     </>

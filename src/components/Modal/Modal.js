@@ -3,7 +3,8 @@ import { forwardRef } from 'react';
 import { Fade, Modal } from '../../../node_modules/@mui/material/index';
 import { grey } from 'themes/theme/color';
 
-const ModalCustom = ({ children, open, handleClose, width }) => {
+const ModalCustom = (props) => {
+  const { children, open, handleClose, width, modalStyle } = props;
     return (
         <Modal
             aria-labelledby="transition-modal-title"
@@ -12,8 +13,9 @@ const ModalCustom = ({ children, open, handleClose, width }) => {
             onClose={handleClose}
             closeAfterTransition
             slots={{ backdrop: StyledBackdrop }}
+            {...props}
         >
-            <ModalContent sx={[style, { width: width || 400 }]}>{children}</ModalContent>
+            <ModalContent sx={[style, modalStyle, { width: width || 400 }]}>{children}</ModalContent>
         </Modal>
     )
 }

@@ -1,5 +1,5 @@
 // assets
-import { UserOutlined, TeamOutlined, ShoppingOutlined, ShoppingCartOutlined, CommentOutlined } from '@ant-design/icons';
+import { UserOutlined, TeamOutlined, ShoppingOutlined, ShoppingCartOutlined, CommentOutlined, TagOutlined, } from '@ant-design/icons';
 
 // icons
 const icons = {
@@ -7,7 +7,8 @@ const icons = {
     TeamOutlined,
     ShoppingOutlined,
     ShoppingCartOutlined,
-    CommentOutlined
+    CommentOutlined,
+    TagOutlined,
 };
 
 // ==============================|| MENU ITEMS - APPLICATION ||============================== //
@@ -39,6 +40,14 @@ const application = {
             type: 'item',
             url: 'application/product/default',
             icon: icons.ShoppingOutlined,
+            //   breadcrumbs: false
+        },
+        {
+            id: 'discount',
+            title: 'Mã giảm giá',
+            type: 'item',
+            url: 'application/discount/default',
+            icon: icons.TagOutlined,
             //   breadcrumbs: false
         },
         {

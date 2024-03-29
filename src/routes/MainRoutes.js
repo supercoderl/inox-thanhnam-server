@@ -4,6 +4,9 @@ import { lazy } from 'react';
 import Loadable from 'components/Loadable';
 import MainLayout from 'layout/MainLayout';
 import Message from 'pages/application/Message';
+import OrderViewer from 'pages/application/order-forms/OrderViewer';
+import Discount from 'pages/application/Discount';
+import Profile from 'pages/user/Profile';
 
 // render - dashboard
 const DashboardDefault = Loadable(lazy(() => import('pages/dashboard')));
@@ -91,11 +94,28 @@ const MainRoutes = {
           ]
         },
         {
+          path: 'discount',
+          children: [
+            {
+              path: 'default',
+              element: <Discount />
+            },
+            // {
+            //   path: 'review/:orderID',
+            //   element: <OrderViewer />
+            // }
+          ]
+        },
+        {
           path: 'order',
           children: [
             {
               path: 'default',
               element: <Order />
+            },
+            {
+              path: 'review/:orderID',
+              element: <OrderViewer />
             }
           ]
         },
@@ -105,6 +125,15 @@ const MainRoutes = {
             {
               path: 'default',
               element: <Message />
+            }
+          ]
+        },
+        {
+          path: 'profile',
+          children: [
+            {
+              path: 'default',
+              element: <Profile />
             }
           ]
         },

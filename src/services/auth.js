@@ -18,6 +18,11 @@ const AuthService = {
     getUser: () => {
         return localStorage.getItem("user");
     },
+
+    logout: () => {
+        localStorage.clear();
+        window.location.replace("/admin/login");
+    },
 };
 
 export default AuthService;

@@ -1,18 +1,44 @@
 import * as Yup from 'yup';
 import { Formik } from 'formik';
 import axiosInstance from 'config/axios';
-import { Button, FormHelperText, Grid, InputLabel, OutlinedInput, Stack } from '@mui/material';
+import { Button, FormHelperText, Grid, InputLabel, OutlinedInput, Stack, Select, MenuItem } from '@mui/material';
 import AnimateButton from 'components/@extended/AnimateButton';
 import { toast } from 'react-toastify';
+import { useEffect, useState } from 'react';
 
 const ProductCreator = ({ resetPage }) => {
+    const [categories, setCategories] = useState([]);
+    const [discounts, setDiscounts] = useState([]);
+
+    const getCategories = async () => {
+        await axiosInstance.get("Category/categories").then((response) => {
+            const result = response.data;
+            if (result && result.success) {
+                setCategories(result.data);
+            }
+            else toast.error(result.message);
+        }).catch((error) => console.log(error))
+    };
+
+    useEffect(() => {
+        getCategories();
+        getDiscounts();
+    }, []);
+
+    const getDiscounts = async () => {
+        await axiosInstance.get("Discount/discounts").then((response) => {
+            const result = response.data;
+            if (result && result.success) setDiscounts(result.data);
+        }).catch((error) => console.log("Get discounts: ", error));
+    }
+
     return (
         <Formik
             initialValues={{
                 name: "",
                 description: "",
-                categoryID: null,
-                inventoryID: null,
+                categoryID: 1,
+                quantity: 0,
                 price: 0,
                 priority: 0,
                 discountID: null,
@@ -26,6 +52,7 @@ const ProductCreator = ({ resetPage }) => {
                 material: Yup.string().required('Chất liệu không được để trống'),
                 dimension: Yup.string().required('Kích thước không được để trống'),
                 origin: Yup.string().required('Nguồn gốc không được để trống'),
+                quantity: Yup.number().required('Số lượng còn lại không được để trống'),
             })}
             onSubmit={async (values, { setErrors, setStatus, setSubmitting }) => {
                 try {
@@ -99,17 +126,27 @@ const ProductCreator = ({ resetPage }) => {
                         <Grid item xs={4}>
                             <Stack spacing={1}>
                                 <InputLabel htmlFor="category-product">Phân loại</InputLabel>
-                                <OutlinedInput
+                                <Select
                                     id="category-product"
-                                    type="text"
                                     value={values.categoryID}
-                                    name="category"
+                                    name="categoryID"
                                     onBlur={handleBlur}
                                     onChange={handleChange}
                                     placeholder="Phân loại"
                                     fullWidth
                                     error={Boolean(touched.categoryID && errors.categoryID)}
-                                />
+                                >
+                                    {
+                                        categories && categories.length > 0 ?
+                                            categories.map((item, index) => {
+                                                return (
+                                                    <MenuItem value={item.categoryID} key={index}>{item.name}</MenuItem>
+                                                )
+                                            })
+                                            :
+                                            null
+                                    }
+                                </Select>
                                 {touched.categoryID && errors.categoryID && (
                                     <FormHelperText error id="standard-weight-helper-text-category-product">
                                         {errors.categoryID}
@@ -144,21 +181,21 @@ const ProductCreator = ({ resetPage }) => {
 
                         <Grid item xs={4}>
                             <Stack spacing={1}>
-                                <InputLabel htmlFor="category-product">Tồn kho</InputLabel>
+                                <InputLabel htmlFor="quantity-product">Tồn kho</InputLabel>
                                 <OutlinedInput
-                                    id="inventory-product"
-                                    type="text"
-                                    value={values.inventoryID}
-                                    name="inventory"
+                                    id="quantity-product"
+                                    type="number"
+                                    value={values.quantity}
+                                    name="quantity"
                                     onBlur={handleBlur}
                                     onChange={handleChange}
                                     placeholder="Tồn kho"
                                     fullWidth
-                                    error={Boolean(touched.inventoryID && errors.inventoryID)}
+                                    error={Boolean(touched.quantity && errors.quantity)}
                                 />
-                                {touched.inventoryID && errors.inventoryID && (
-                                    <FormHelperText error id="standard-weight-helper-text-inventory-product">
-                                        {errors.inventoryID}
+                                {touched.quantity && errors.quantity && (
+                                    <FormHelperText error id="standard-weight-helper-text-quantity-product">
+                                        {errors.quantity}
                                     </FormHelperText>
                                 )}
                             </Stack>
@@ -189,17 +226,27 @@ const ProductCreator = ({ resetPage }) => {
                         <Grid item xs={4}>
                             <Stack spacing={1}>
                                 <InputLabel htmlFor="discount-product">Loại giảm giá</InputLabel>
-                                <OutlinedInput
+                                <Select
                                     id="discount-product"
-                                    type="text"
                                     value={values.discountID}
-                                    name="discount"
+                                    name="discountID"
                                     onBlur={handleBlur}
                                     onChange={handleChange}
                                     placeholder="Loại giảm giá"
                                     fullWidth
                                     error={Boolean(touched.discountID && errors.discountID)}
-                                />
+                                >
+                                    {
+                                        discounts && discounts.length > 0 ?
+                                            discounts.map((item, index) => {
+                                                return (
+                                                    <MenuItem value={item.discountID} key={index}>{item.name}</MenuItem>
+                                                )
+                                            })
+                                            :
+                                            null
+                                    }
+                                </Select>
                                 {touched.discountID && errors.discountID && (
                                     <FormHelperText error id="standard-weight-helper-text-discount-product">
                                         {errors.discountID}

@@ -1,9 +1,10 @@
 // assets
-import { ChromeOutlined, QuestionOutlined } from '@ant-design/icons';
+import { ApiOutlined, BgColorsOutlined, QuestionOutlined } from '@ant-design/icons';
 
 // icons
 const icons = {
-  ChromeOutlined,
+  ApiOutlined,
+  BgColorsOutlined,
   QuestionOutlined
 };
 
@@ -15,15 +16,24 @@ const support = {
   type: 'group',
   children: [
     {
-      id: 'sample-page',
-      title: 'Sample Page',
+      id: 'theme',
+      title: 'Themes',
       type: 'item',
       url: '/sample-page',
-      icon: icons.ChromeOutlined
+      icon: icons.BgColorsOutlined
     },
     {
-      id: 'documentation',
-      title: 'Documentation',
+      id: 'plugin',
+      title: 'Plugins',
+      type: 'item',
+      url: 'https://codedthemes.gitbook.io/mantis/',
+      icon: icons.ApiOutlined,
+      external: true,
+      target: true
+    },
+    {
+      id: 'faqs',
+      title: 'FAQS',
       type: 'item',
       url: 'https://codedthemes.gitbook.io/mantis/',
       icon: icons.QuestionOutlined,

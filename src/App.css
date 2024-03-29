@@ -1,9 +1,7 @@
-
-
 .inbox {
     background: #EDF2F4;
     width: 100%;
-    height: 635px;
+    height: 600px;
     display: flex;
     border-radius: 4px;
 }
@@ -27,37 +25,6 @@
     border-bottom: 1px solid #0000001e;
 }
 
-.inbox aside .avatar {
-    width: 30px;
-    height: 30px;
-    border: 2px solid #FFF;
-    border-radius: 100%;
-}
-
-.inbox aside ul {
-    padding: 0;
-    margin: 0;
-}
-
-.inbox aside li {
-    background-color: white;
-    list-style: none;
-    color: #0f2463;
-    display: flex;
-    gap: 10px;
-    padding: 0 1rem;
-    align-items: center;
-    font-size: 1em;
-    cursor: pointer;
-    border-bottom: 1px solid #0000001e;
-    border-top-left-radius: 4px;
-}
-
-.inbox aside li:hover {
-    background: #7aa2d913;
-    color: #0d30f4;
-}
-
 .inbox main {
     background: white;
     height: 100%;
@@ -69,35 +36,63 @@
 .inbox main .message-wrap {
     height: 85%;
     overflow-y: scroll;
+    background-color: #fff;
+    display: flex;
+    padding: 1rem;
+    flex-direction: column;
+    overflow: hidden;
+    -ms-overflow-style: none;
+    scrollbar-width: none;
 }
 
-.inbox main .message {
-    background: #43d3c5;
-    width: 70%;
-    margin: 1em;
-    padding: 1em;
-    border-radius: 4px;
-    opacity: 1;
-    transition: opacity ease-in-out 0.45s;
+.inbox main .message-wrap:hover {
+    overflow: hidden;
+    overflow-y: scroll;
 }
 
-.inbox main .message p {
-    font-size: 0.68em;
-    color: #FFF;
-    font-weight: 300;
+.inbox main .message-wrap .senderSays {
+    display: flex;
+    align-items: end;
+    gap: 0.5rem;
+    max-width: 10%;
 }
 
-.inbox main .message img {
-    width: 30px;
-    height: 30px;
-    border-radius: 100%;
-    transform: translateX(-70px) translateY(-20px);
-    float: left;
+.inbox main .message-wrap .senderSays .text-box-sender {
+    display: flex;
+    flex-direction: column;
+    gap: 10px
 }
 
-.inbox main .message:nth-of-type(even) {
-    background: #2fc8ba;
-    margin: 1em 1em;
+.inbox main .message-wrap .senderSays img {
+    width: 50px;
+}
+
+.inbox main .message-wrap .text-box-sender>.text,
+.inbox main .message-wrap .userSays>.text {
+    background-color: #eff3f6;
+    padding: 0.5rem 1rem;
+    width: fit-content;
+    border-radius: 5px;
+}
+
+.inbox main .message-wrap .text-box-sender>.text>p:not(.text-box-sender>.text>p:nth-of-type(1)) {
+    margin-top: 1.5rem;
+}
+
+.inbox main .message-wrap .userSays {
+    margin-top: 3rem;
+    max-width: 60%;
+    align-self: flex-end;
+}
+
+.inbox main .message-wrap .userSays>.text {
+    display: flex;
+    flex-direction: column;
+    align-items: end;
+}
+
+.inbox main .message-wrap .userSays>.text>p:not(.userSays>.text>p:nth-of-type(1)) {
+    margin-top: 1.5rem;
 }
 
 .inbox main footer {
@@ -141,4 +136,39 @@
 
 ::-webkit-scrollbar-thumb {
     background: rgba(255, 255, 255, 0.1);
+}
+
+.filter .text {
+    line-height: 0;
+    padding-block: 12px;
+}
+
+.filter .icon.left {
+    margin-right: 5px;
+}
+
+.filter .icon.right {
+    margin-left: 5px;
+}
+
+.loading {
+    position: absolute;
+    background: rgba(0, 0, 0, 0.2);
+    z-index: 2;
+    width: 100%;
+    height: 100%;
+    color: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.react-colorful__saturation,
+.react-colorful__last-control {
+    border-radius: unset !important;
+}
+
+.react-colorful__pointer {
+    width: 16px !important;
+    height: 16px !important;
 }

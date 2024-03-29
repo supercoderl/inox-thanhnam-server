@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
 
 // material-ui
@@ -35,7 +35,7 @@ import AuthService from 'services/auth';
 // ============================|| FIREBASE - LOGIN ||============================ //
 
 const AuthLogin = () => {
-  const [checked, setChecked] = React.useState(false);
+  const [checked, setChecked] = useState(false);
   const navigate = useNavigate();
 
   const [showPassword, setShowPassword] = React.useState(false);
@@ -62,7 +62,7 @@ const AuthLogin = () => {
           try {
             setStatus({ success: false });
             setSubmitting(true);
-            await axiosInstance.post("Auth/login", values).then((response) => {
+            await axiosInstance.post("Auth/login", values).then(async (response) => {
               const result = response.data;
               if (result && result.success) {
                 setStatus({ success: true });

@@ -4,8 +4,8 @@ import axiosInstance from 'config/axios';
 import { Button, FormHelperText, Grid, InputLabel, OutlinedInput, Stack } from '@mui/material';
 import AnimateButton from 'components/@extended/AnimateButton';
 import { toast } from 'react-toastify';
-import { TabContext, TabList, TabPanel } from '../../../../node_modules/@mui/lab/index';
-import { Box, Tab } from '../../../../node_modules/@mui/material/index';
+import { TabContext, TabList, TabPanel } from '@mui/lab';
+import { Box, Tab } from '@mui/material';
 import { useState } from 'react';
 
 const CustomerViewer = ({ customer, state, resetPage }) => {
