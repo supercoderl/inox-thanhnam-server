@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Box, List, OutlinedInput } from "../../../../node_modules/@mui/material/index";
+import { Box, List, OutlinedInput, Typography } from "../../../../node_modules/@mui/material/index";
 import { SearchOutlined, } from "@ant-design/icons";
 import { MessageItem } from "../MessageItem/MessageItem";
 
@@ -45,7 +45,7 @@ export const MessageList = (props) => {
                         )
                     })
                     :
-                    <div>asd</div>
+                    <Typography variant="body1" sx={{ textAlign: "center" }}>Đang tải tin nhắn...</Typography>
             }
         </List>
     )
