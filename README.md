@@ -1,4 +1,4 @@
-# Inox Thành Nam Server
+# Inox Thanh Nam Server
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Price](https://img.shields.io/badge/price-FREE-0098f7.svg)](https://github.com/supercoderl/inox-thanhnam-server/blob/main/README.md)
@@ -94,7 +94,7 @@ npm start
 
 ## Author
 
-Blossom Nails Admin is created by [SuperCoderl](https://www.linkedin.com/in/supercoderle/).
+Inox Thanh Nam Server is created by [SuperCoderl](https://www.linkedin.com/in/supercoderle/).
 
 ## Follow me
 
