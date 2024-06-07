@@ -4,6 +4,7 @@ import axiosInstance from 'config/axios';
 import { Button, FormHelperText, Grid, InputLabel, OutlinedInput, Stack, } from '@mui/material';
 import AnimateButton from 'components/@extended/AnimateButton';
 import { toast } from 'react-toastify';
+import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 
 const DiscountCreator = ({ resetPage }) => {
     return (
@@ -12,6 +13,8 @@ const DiscountCreator = ({ resetPage }) => {
                 name: "",
                 code: "",
                 percentage: 0,
+                dateExpire: new Date(),
+                limitedQuantity: 0
             }}
             validationSchema={Yup.object().shape({
                 name: Yup.string().required('Tên mã giảm giá không được để trống'),
@@ -40,10 +43,10 @@ const DiscountCreator = ({ resetPage }) => {
                 }
             }}
         >
-            {({ errors, handleBlur, handleChange, handleSubmit, isSubmitting, touched, values }) => (
+            {({ errors, handleBlur, handleChange, handleSubmit, isSubmitting, touched, values, setFieldValue }) => (
                 <form noValidate onSubmit={handleSubmit}>
                     <Grid container spacing={3}>
-                        <Grid item xs={12}>
+                        <Grid item xs={6}>
                             <Stack spacing={1}>
                                 <InputLabel htmlFor="name-discount">Tên mã giảm giá</InputLabel>
                                 <OutlinedInput
@@ -65,7 +68,7 @@ const DiscountCreator = ({ resetPage }) => {
                             </Stack>
                         </Grid>
 
-                        <Grid item xs={12}>
+                        <Grid item xs={6}>
                             <Stack spacing={1}>
                                 <InputLabel htmlFor="code-discount">Mã giảm giá</InputLabel>
                                 <OutlinedInput
@@ -87,7 +90,7 @@ const DiscountCreator = ({ resetPage }) => {
                             </Stack>
                         </Grid>
 
-                        <Grid item xs={12}>
+                        <Grid item xs={6}>
                             <Stack spacing={1}>
                                 <InputLabel htmlFor="percentage-discount">Phần trăm giảm</InputLabel>
                                 <OutlinedInput
@@ -109,6 +112,42 @@ const DiscountCreator = ({ resetPage }) => {
                             </Stack>
                         </Grid>
 
+                        <Grid item xs={6}>
+                            <Stack spacing={1}>
+                                <InputLabel htmlFor="date-expire-discount">Ngày hết hạn</InputLabel>
+                                <DatePicker
+                                    onChange={(e) => setFieldValue("dateExpire", e._d)}
+                                />
+                                {touched.dateExpire && errors.dateExpire && (
+                                    <FormHelperText error id="standard-weight-helper-text-date-expire-discount">
+                                        {errors.dateExpire}
+                                    </FormHelperText>
+                                )}
+                            </Stack>
+                        </Grid>
+
+                        <Grid item xs={6}>
+                            <Stack spacing={1}>
+                                <InputLabel htmlFor="limited-quantity-discount">Số lượng tối thiểu</InputLabel>
+                                <OutlinedInput
+                                    id="limited-quantity-discount"
+                                    type="number"
+                                    value={values.limitedQuantity}
+                                    name="limitedQuantity"
+                                    onBlur={handleBlur}
+                                    onChange={handleChange}
+                                    placeholder="Số lượng tối thiểu"
+                                    fullWidth
+                                    error={Boolean(touched.limitedQuantity && errors.limitedQuantity)}
+                                />
+                                {touched.limitedQuantity && errors.limitedQuantity && (
+                                    <FormHelperText error id="standard-weight-helper-text-limited-quantity-discount">
+                                        {errors.limitedQuantity}
+                                    </FormHelperText>
+                                )}
+                            </Stack>
+                        </Grid>
+                        
                         <Grid item xs={12}>
                             <AnimateButton>
                                 <Button

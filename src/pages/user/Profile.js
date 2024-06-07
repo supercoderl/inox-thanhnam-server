@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Avatar, Box, Button, FormHelperText, Grid, InputLabel, OutlinedInput, Stack, TextField, Typography } from "../../../node_modules/@mui/material/index"
 import { HighlightOutlined } from "@ant-design/icons"
 import { HexColorPicker } from "react-colorful";
@@ -9,17 +9,21 @@ import { Formik } from 'formik';
 import axiosInstance from "config/axios";
 import { toast } from "react-toastify";
 import { getFirstName, getLastName } from "utils/text";
+import { getImage } from "utils/image";
 
 const Profile = () => {
     const [iconColor, setIconColor] = useState("black");
     const [showColorPicker, setShowColorPicker] = useState(false);
+    const [file, setFile] = useState(null);
     const [profile, setProfile] = useState({
         userID: "",
         username: "",
         fullname: "",
         phone: "",
+        avatar: "",
         isActive: true
     });
+    const inputRef = useRef(null);
 
     const handleColorChange = (color) => {
         setIconColor(color);
@@ -33,11 +37,22 @@ const Profile = () => {
                 userID: result.data?.userID,
                 username: result.data?.username,
                 fullname: result.data?.lastname + " " + result.data?.firstname,
-                phone: result.data?.phone,
+                phone: "0" + result.data?.phone,
+                avatar: result.data?.avatar,
                 isActive: result.data?.isActive
             });
             else toast.error(result.message);
         }).catch((error) => console.log(error));
+    }
+
+    const handleChooseImage = () => {
+        if (inputRef) {
+            inputRef.current.click();
+        }
+    }
+
+    const handleFileChange = (event) => {
+        setFile(event.target.files[0]);
     }
 
     useEffect(() => {
@@ -45,22 +60,30 @@ const Profile = () => {
     }, []);
 
     const handleSave = async () => {
-        const body = {
-            userID: profile?.userID,
-            username: profile?.username,
-            firstname: getFirstName(profile?.fullname),
-            lastname: getLastName(profile?.fullname),
-            phone: profile?.phone,
-            isActive: profile?.isActive,
-        }
-        await axiosInstance.put(`User/update-user/${profile?.userID}`, body).then((response) => {
+
+        const id = toast.loading("Vui lòng chờ...")
+
+        const formData = new FormData();
+        formData.append("file", file);
+        formData.append("userID", profile?.userID);
+        formData.append("username", profile?.username);
+        formData.append("firstname", getFirstName(profile?.fullname));
+        formData.append("lastname", getLastName(profile?.fullname));
+        formData.append("phone", profile?.phone);
+        formData.append("isActive", profile?.isActive);
+
+        await axiosInstance.put(`User/update-user/${profile?.userID}`, formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data'
+            }
+        }).then((response) => {
             const result = response.data;
             if (!result) return;
             else if (result.success) {
-                toast.success(result.message);
                 getProfile();
+                toast.update(id, {render: result.message, type: "success", isLoading: false, autoClose: 2000 });
             }
-            else toast.error(result.message);
+            else toast.update(id, {render: result.message, type: "error", isLoading: false, autoClose: 2000 });
         }).catch((error) => console.log(error));
     }
 
@@ -87,7 +110,7 @@ const Profile = () => {
                             }
                             <Avatar
                                 alt="Remy Sharp"
-                                src="https://media.wired.com/photos/598e35fb99d76447c4eb1f28/master/pass/phonepicutres-TA.jpg"
+                                src={getImage(profile?.avatar)}
                                 sx={{ width: 100, height: 100, position: "absolute", bottom: "-50%", left: "5%", borderRadius: "15%", border: "3px solid white" }}
                             />
                         </Box>
@@ -96,7 +119,13 @@ const Profile = () => {
                             <Typography variant="caption">Avatar sẽ được hiển thị trên hồ sơ của bạn</Typography>
                             <Box sx={{ d: "flex", py: 2 }}>
                                 <Stack spacing={{ xs: 1, sm: 1 }} direction="row" useFlexGap flexWrap="wrap">
-                                    <Button variant="outlined">Đổi ảnh</Button>
+                                    <input
+                                        ref={inputRef}
+                                        type="file"
+                                        style={{ display: "none" }}
+                                        onChange={handleFileChange}
+                                    />
+                                    <Button variant="outlined" onClick={handleChooseImage}>Đổi ảnh</Button>
                                     <Button variant="contained" onClick={handleSave}>Lưu</Button>
                                 </Stack>
                             </Box>

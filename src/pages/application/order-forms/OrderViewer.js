@@ -1,13 +1,13 @@
 import MainCard from "components/MainCard";
 import "./css/OrderViewer.css";
 import { Typography, Grid, TableContainer, Table, TableBody, TableRow, TableCell, TableFooter, Avatar, Box, Button } from "@mui/material";
-import { useParams } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import CustomTableHead from "components/Table/CustomTableHead";
 import { useEffect, useState } from "react";
 import { formatCurrency } from "utils/currency";
 import axiosInstance from "config/axios";
-import { noImageProduct } from "config";
 import { toast } from "react-toastify";
+import { getImage } from "utils/image";
 
 const headCells = [
     {
@@ -37,109 +37,37 @@ const headCells = [
 ];
 
 const OrderViewer = () => {
-    const [order] = useState('asc');
-    const [orderBy] = useState('');
-    const [orderInfo, setOrderInfo] = useState(null);
-    const [orderItemInfos, setOrderItemInfos] = useState([]);
+    const [order, setOrder] = useState(null);
+    const [orderItems, setOrderItems] = useState([]);
     const [loading, setLoading] = useState(false);
 
-    const param = useParams();
+    const { state } = useLocation();
 
     useEffect(() => {
         getOrder();
     }, []);
 
-    const getProductImage = async (productID) => {
-        return await axiosInstance.get(`ProductImage/images/${productID}`).then((response) => {
-            const result = response.data;
-            if (!result) return null;
-            else if (result.success) return result;
-            return null;
-        }).catch((error) => { console.log("Get Image: ", error); return null; });
-    }
-
-    const getProductInfo = async (productID) => {
-        return await axiosInstance.get(`Product/get-product-by-id/${productID}`).then((response) => {
-            const result = response.data;
-            if (!result) return null;
-            else if (result.success) return result;
-            // else toast.error(result.message);
-        }).catch((error) => { console.log("Get Product: ", error); return null; });
-    }
-
-    const getImageURL = (orderItemID) => {
-        if (orderItemInfos && orderItemInfos.length > 0) {
-            const orderItem = orderItemInfos.find(x => x.orderItemID === orderItemID);
-            return orderItem && orderItem?.image ? orderItem.image.imageURL : "N/A";
+    const getOrder = () => {
+        if (state && state.item) {
+            setOrder(state.item?.order);
+            setOrderItems(state.item?.orderItems || []);
         }
-        return "N/A";
     }
-
-    const getProduct = (orderItemID) => {
-        if (orderItemInfos && orderItemInfos.length > 0) {
-            const orderItem = orderItemInfos.find(x => x.orderItemID === orderItemID);
-            return orderItem && orderItem?.product ? orderItem.product : null;
-        }
-        return null;
-    }
-
-    const getOrder = async () => {
-        setLoading(true);
-        await axiosInstance.get(`Order/get-order-by-id/${param?.orderID}`).then((response) => {
-            const result = response.data;
-            if (!result) return;
-            else if (result.success) {
-                setOrderInfo(result.data);
-                result.data && result.data.orderItems && result.data.orderItems.length ?
-                    result.data.orderItems.map(async e => {
-                        const image = await getProductImage(e.productID);
-                        const product = await getProductInfo(e.productID);
-                        if (image && product) {
-                            if (orderItemInfos.length === 0)
-                                setOrderItemInfos(prev => [
-                                    ...prev,
-                                    { orderItemID: e.orderItemID, image: image.data[0], product: product.data }
-                                ]);
-                            else {
-                                if (!orderItemInfos.some(x => x.orderItemID === e.orderItemID))
-                                    setOrderItemInfos(prev => [
-                                        ...prev,
-                                        { orderItemID: e.orderItemID, image: image.data[0], product: product.data }
-                                    ]);
-                            }
-                        }
-                        else if (product) {
-                            if (orderItemInfos.length === 0)
-                                setOrderItemInfos(prev => [
-                                    ...prev,
-                                    { orderItemID: e.orderItemID, image: { imageURL: noImageProduct }, product: product.data }
-                                ]);
-                            else {
-                                if (!orderItemInfos.some(x => x.orderItemID === e.orderItemID))
-                                    setOrderItemInfos(prev => [
-                                        ...prev,
-                                        { orderItemID: e.orderItemID, image: { imageURL: noImageProduct }, product: product.data }
-                                    ]);
-                            }
-                        }
-                    }) : null;
-            }
-        }).catch((error) => console.log(error)).finally(() => setTimeout(() => setLoading(false), 2000));
-    };
 
     const submitStatus = async () => {
         setLoading(true);
         const body = {
-            orderDate: orderInfo?.order.orderDate,
-            orderID: orderInfo?.order.orderID,
-            status: 3,
-            totalAmount: orderInfo?.order.totalAmount,
-            userID: orderInfo?.order.userID,
-            fullname: orderInfo?.order.fullname,
-            phone: orderInfo?.order.phone,
-            address: orderInfo?.order.address
+            orderDate: order?.orderDate,
+            orderID: order?.orderID,
+            status: 2,
+            totalAmount: order?.totalAmount,
+            userID: order?.userID,
+            sessionID: order?.sessionID,
+            fullname: order?.fullname,
+            phone: order?.phone,
+            address: order?.address
         };
-        await axiosInstance.put(`Order/update-order/${orderInfo?.order.orderID}`, body, null).then((response) => {
+        await axiosInstance.put(`Order/update-order/${order?.orderID}`, body, null).then((response) => {
             const result = response.data;
             if (!result) return;
             else if (result.success) toast.success("Đã xác nhận đơn hàng");
@@ -155,7 +83,7 @@ const OrderViewer = () => {
         <>
             <MainCard title="Chi tiết đơn hàng">
                 <Box sx={{ display: "flex", justifyContent: "space-between" }}>
-                    <Typography variant="h3" gutterBottom>Mã đơn hàng: <span style={{ color: "#69b1ff" }}>#{param.orderID}</span></Typography>
+                    <Typography variant="h3" gutterBottom>Mã đơn hàng: <span style={{ color: "#69b1ff" }}>#{order?.orderID}</span></Typography>
                     <Box>
                         <Button variant="contained" color="error" onClick={back} sx={{ mr: 1 }}>Quay lại</Button>
                         <Button variant="contained" onClick={submitStatus} disabled={loading}>Xác nhận</Button>
@@ -186,11 +114,11 @@ const OrderViewer = () => {
                                     }
                                 }}
                             >
-                                <CustomTableHead headCells={headCells} order={order} orderBy={orderBy} />
+                                <CustomTableHead headCells={headCells} />
                                 <TableBody>
                                     {
-                                        orderInfo && orderInfo.orderItems && orderInfo.orderItems.length > 0 ?
-                                            orderInfo.orderItems.map((item, index) => {
+                                        orderItems && orderItems.length > 0 ?
+                                            orderItems.map((item, index) => {
                                                 return (
                                                     <TableRow
                                                         hover
@@ -205,7 +133,7 @@ const OrderViewer = () => {
                                                         >
                                                             <Avatar
                                                                 sx={{ bgcolor: "orange", borderRadius: 1 }}
-                                                                src={getImageURL(item.orderItemID)}
+                                                                src={getImage(item?.product?.imageURL)}
                                                                 className="order-detail avatar"
                                                                 id="avatar"
                                                             >
@@ -216,17 +144,17 @@ const OrderViewer = () => {
                                                                 color="rgb(17 92 172)"
                                                                 sx={{ textWrap: "wrap" }}
                                                             >
-                                                                {getProduct(item.orderItemID)?.name}
+                                                                {item.product?.name}
                                                             </Typography>
                                                         </TableCell>
                                                         <TableCell align="center" sx={{ width: 100 }}>
                                                             {item.quantity}
                                                         </TableCell>
                                                         <TableCell align="right" sx={{ width: "15%" }}>
-                                                            {formatCurrency(getProduct(item.orderItemID)?.price || 0)}
+                                                            {formatCurrency(item.product?.price || 0)}
                                                         </TableCell>
                                                         <TableCell align="right" sx={{ width: "15%" }}>
-                                                            {formatCurrency((getProduct(item.orderItemID)?.price || 0) * item.quantity)}
+                                                            {formatCurrency((item.product?.price || 0) * item?.quantity)}
                                                         </TableCell>
                                                     </TableRow>
                                                 )
@@ -240,7 +168,7 @@ const OrderViewer = () => {
                                         <TableCell colSpan={headCells.length}>
                                             <div className="data">
                                                 <span>Trị giá đơn hàng</span>
-                                                <span>{formatCurrency(orderInfo?.totalAmount)}</span>
+                                                <span>{formatCurrency(order?.totalAmount)}</span>
                                             </div>
                                         </TableCell>
                                     </TableRow>
@@ -264,7 +192,7 @@ const OrderViewer = () => {
                                         <TableCell colSpan={headCells.length}>
                                             <div className="data">
                                                 <Typography variant="h5" sx={{ fontWeight: 'bold', color: "black" }}>Tổng thu</Typography>
-                                                <Typography variant="h5" sx={{ fontWeight: 'bold', color: "black" }}>{formatCurrency(orderInfo?.totalAmount)}</Typography>
+                                                <Typography variant="h5" sx={{ fontWeight: 'bold', color: "black" }}>{formatCurrency(order?.totalAmount)}</Typography>
                                             </div>
                                         </TableCell>
                                     </TableRow>
@@ -279,16 +207,16 @@ const OrderViewer = () => {
                             <Box sx={{ paddingBlock: 1, display: "grid", gap: 2 }}>
                                 <Box sx={{ display: "flex", justifyContent: "space-between" }}>
                                     <span style={{ fontWeight: 500 }}>Tên khách hàng:</span>
-                                    <Typography variant="h6">{orderInfo?.fullname || "N/A"}</Typography>
+                                    <Typography variant="h6">{order?.fullname || "N/A"}</Typography>
                                 </Box>
                                 <Box sx={{ display: "flex", justifyContent: "space-between" }}>
                                     <span style={{ fontWeight: 500 }}>Số điện thoại:</span>
-                                    <Typography variant="h6">{orderInfo?.phone || "N/A"}</Typography>
+                                    <Typography variant="h6">{order?.phone || "N/A"}</Typography>
                                 </Box>
                                 <Box sx={{ display: "flex", justifyContent: "space-between" }}>
                                     <span style={{ fontWeight: 500 }}>Địa chỉ:</span>
                                     <Typography variant="h6" sx={{ maxWidth: 200, overflowWrap: "break-word", textAlign: "right" }}>
-                                        {orderInfo?.address || "N/A"}
+                                        {order?.address || "N/A"}
                                     </Typography>
                                 </Box>
                             </Box>

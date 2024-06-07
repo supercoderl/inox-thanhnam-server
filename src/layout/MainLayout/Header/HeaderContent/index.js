@@ -22,7 +22,7 @@ const HeaderContent = () => {
   const [notificationCount, setNotificationCount] = useState(0);
 
   const joinRoom = async (user, room) => {
-    const connection = new HubConnectionBuilder().withUrl("https://inox.somee.com/notify").configureLogging(LogLevel.Information).build();
+    const connection = new HubConnectionBuilder().withUrl(`${process.env.REACT_APP_BASE_URL}/notify`).configureLogging(LogLevel.Information).build();
     connection.on("ReceiveMessage", (user, message, result) => {
       setNotifications(messages => [result, ...messages]);
     });

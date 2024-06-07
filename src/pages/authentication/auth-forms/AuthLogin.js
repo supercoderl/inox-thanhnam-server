@@ -51,8 +51,8 @@ const AuthLogin = () => {
     <>
       <Formik
         initialValues={{
-          username: 'info@codedthemes.com',
-          password: '123456',
+          username: 'admin',
+          password: 'admin@123',
         }}
         validationSchema={Yup.object().shape({
           username: Yup.string().max(255).required('Vui lòng điền tên đăng nhập'),

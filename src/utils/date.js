@@ -5,7 +5,7 @@ export const dateFormatterV1 = (date) => {
 }
 
 export const dateFormatterV2 = (date, format) => {
-    return date ? moment(date).format(format || "DD/MM/YYYY") : "N/A";
+    return date ? moment(date).format(format || "DD-MM-YYYY") : "N/A";
 }
 
 export const timeAgo = (date) => {

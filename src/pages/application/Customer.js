@@ -1,43 +1,35 @@
 import MainCard from "components/MainCard"
-import { Box, IconButton, Link, Table, TableBody, TableCell, TableContainer, TableFooter, TablePagination, TableRow, Tooltip, } from "../../../node_modules/@mui/material/index";
+import { Avatar, Box, Button, IconButton, Link, OutlinedInput, Table, TableBody, TableCell, TableContainer, TableFooter, TablePagination, TableRow, Tooltip, Typography, } from "../../../node_modules/@mui/material/index";
 import { useEffect, useState } from "react";
 import { Link as RouterLink } from 'react-router-dom';
-import { DeleteOutlined, EditOutlined } from '@ant-design/icons';
+import { DeleteOutlined, EditOutlined, SearchOutlined, CloseCircleOutlined, CaretDownOutlined, SortDescendingOutlined, SortAscendingOutlined, ReloadOutlined, ExportOutlined } from '@ant-design/icons';
 import CustomTableHead from "components/Table/CustomTableHead";
 import axiosInstance from "config/axios";
 import TableRowsLoader from "components/Table/TableRowsSkeleton";
 import { toast } from "react-toastify";
 import ModalCustom from "components/Modal/Modal";
 import CustomerViewer from "./customer-forms/CustomerViewer";
-
-function createData(customerID, name, address, phone) {
-    return { customerID, name, address, phone };
-}
-
-const rows = [
-    createData(84564564, 'Nguyễn Văn Thanh', 'test', '0917282199'),
-    createData(98764560, 'Trần Đại Bảo', 'test', '0987687877'),
-    createData(84564569, 'Nguyễn Văn Thanh', 'test', '0917282199'),
-    createData(98764568, 'Trần Đại Bảo', 'test', '0987687877'),
-    createData(84564567, 'Nguyễn Văn Thanh', 'test', '0917282199'),
-    createData(98764574, 'Trần Đại Bảo', 'test', '0987687877'),
-    createData(84564504, 'Nguyễn Văn Thanh', 'test', '0917282199'),
-    createData(98764564, 'Trần Đại Bảo', 'test', '0987687877'),
-    createData(84564364, 'Nguyễn Văn Thanh', 'test', '0917282199'),
-    createData(98714564, 'Trần Đại Bảo', 'test', '0987687877'),
-];
+import MenuExport from "components/MenuExport";
+import MenuSort from "components/MenuSort";
+import nodata from "../../assets/images/icons/nodata.png";
 
 const headCells = [
     {
-        id: 'customerID',
+        id: 'userID',
         align: 'center',
         disablePadding: false,
         label: 'STT'
     },
     {
-        id: 'name',
+        id: 'lastname',
         align: 'left',
-        disablePadding: true,
+        disablePadding: false,
+        label: 'Họ'
+    },
+    {
+        id: 'firstname',
+        align: 'left',
+        disablePadding: false,
         label: 'Tên khách hàng'
     },
     {
@@ -70,6 +62,15 @@ const Customer = () => {
     const [openModal, setOpenModal] = useState(false);
     const [user, setUser] = useState(null);
     const [state, setState] = useState("update");
+    const [searchText, setSearchText] = useState("");
+    const [anchorElExport, setAnchorElExport] = useState(null);
+    const [anchorElSort, setAnchorElSort] = useState(null);
+    const [sort, setSort] = useState({
+        sortType: null,
+        sortFrom: "descending"
+    });
+    const openMenuExport = Boolean(anchorElExport);
+    const openMenuSort = Boolean(anchorElSort);
 
     const handleOpen = (item, state) => {
         setOpenModal(true);
@@ -93,7 +94,12 @@ const Customer = () => {
 
     const getUsers = async () => {
         setLoading(true);
-        await axiosInstance.get("User/users").then((response) => {
+        await axiosInstance.get("User/users", {
+            params: {
+                ...sort,
+                searchText,
+            }
+        }).then((response) => {
             const result = response.data;
             if (result && result.success) {
                 toast.success(result.message);
@@ -105,12 +111,70 @@ const Customer = () => {
 
     useEffect(() => {
         getUsers();
-    }, []);
+    }, [sort]);
 
 
     return (
         <>
             <MainCard title="Danh sách khách hàng">
+                <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 1 }}>
+                    <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+                        <OutlinedInput
+                            startAdornment={<SearchOutlined onClick={getUsers} />}
+                            endAdornment={
+                                searchText != "" ?
+                                    <IconButton edge="end" onClick={() => setSearchText("")}>
+                                        <CloseCircleOutlined />
+                                    </IconButton>
+                                    :
+                                    null
+                            }
+                            value={searchText}
+                            onChange={e => setSearchText(e.target.value)}
+                            placeholder="Tìm kiếm khách hàng.."
+                            size="small"
+                            onKeyPress={event => {
+                                event.key === 'Enter' && getUsers();
+                            }}
+                        />
+                        <Button variant="outlined" endIcon={<CaretDownOutlined />} sx={{
+                            '.MuiButton-endIcon > *:nth-of-type(1)': {
+                                fontSize: 14
+                            }
+                        }} onClick={(e) => setAnchorElSort(e.currentTarget)}>
+                            Sort by
+                        </Button>
+                        {
+                            sort.sortFrom === "descending"
+                                ?
+                                <IconButton onClick={() => {
+                                    setSort({ ...sort, sortFrom: "ascending" });
+                                }}>
+                                    <SortDescendingOutlined />
+                                </IconButton>
+                                :
+                                <IconButton onClick={() => {
+                                    setSort({ ...sort, sortFrom: "descending" });
+                                }}>
+                                    <SortAscendingOutlined />
+                                </IconButton>
+                        }
+                    </Box>
+                    <Box>
+                        <Tooltip title="Reload">
+                            <IconButton onClick={() => {
+                                setSort({ ...sort, sortType: null });
+                            }}>
+                                <ReloadOutlined />
+                            </IconButton>
+                        </Tooltip>
+                        <Tooltip title="Export">
+                            <IconButton onClick={(e) => setAnchorElExport(e.currentTarget)}>
+                                <ExportOutlined />
+                            </IconButton>
+                        </Tooltip>
+                    </Box>
+                </Box>
                 <TableContainer
                     sx={{
                         width: '100%',
@@ -138,41 +202,50 @@ const Customer = () => {
                                 loading ?
                                     <TableRowsLoader rowsNum={rowsPerPage} colsNum={headCells.length - 1} />
                                     :
-                                    (rowsPerPage > 0
-                                        ? users.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                                        : users
-                                    ).map((row, index) => (
-                                        <TableRow
-                                            hover
-                                            role="checkbox"
-                                            sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
-                                            tabIndex={-1}
-                                            key={row.userID}
-                                        >
-                                            <TableCell component="th" scope="row" align="center">
-                                                <Link color="secondary" component={RouterLink} to="">
-                                                    {index + 1}
-                                                </Link>
-                                            </TableCell>
-                                            <TableCell align="left">{row.lastname + " " + row.firstname}</TableCell>
-                                            <TableCell align="right">{"0" + row.phone}</TableCell>
-                                            <TableCell align="left">{row.userAddress?.address || ""}</TableCell>
-                                            <TableCell align="center">
-                                                <Box>
-                                                    <Tooltip title="Cập nhật" placement="top">
-                                                        <IconButton aria-label="edit" onClick={() => handleOpen(row, "update")}>
-                                                            <EditOutlined />
-                                                        </IconButton>
-                                                    </Tooltip>
-                                                    <Tooltip title="Xóa" placement="top">
-                                                        <IconButton aria-label="delete" onClick={() => handleOpen(row, "delete")}>
-                                                            <DeleteOutlined />
-                                                        </IconButton>
-                                                    </Tooltip>
-                                                </Box>
+                                    users.length > 0 ?
+                                        (rowsPerPage > 0
+                                            ? users.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                                            : users
+                                        ).map((row, index) => (
+                                            <TableRow
+                                                hover
+                                                role="checkbox"
+                                                sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
+                                                tabIndex={-1}
+                                                key={row.userID}
+                                            >
+                                                <TableCell component="th" scope="row" align="center">
+                                                    <Link color="secondary" component={RouterLink} to="">
+                                                        {index + 1}
+                                                    </Link>
+                                                </TableCell>
+                                                <TableCell align="left">{row.lastname}</TableCell>
+                                                <TableCell align="left">{row.firstname}</TableCell>
+                                                <TableCell align="right">{"0" + row.phone}</TableCell>
+                                                <TableCell align="left">{row.userAddress?.address || ""}</TableCell>
+                                                <TableCell align="center">
+                                                    <Box>
+                                                        <Tooltip title="Cập nhật" placement="top">
+                                                            <IconButton aria-label="edit" onClick={() => handleOpen(row, "update")}>
+                                                                <EditOutlined />
+                                                            </IconButton>
+                                                        </Tooltip>
+                                                        <Tooltip title="Xóa" placement="top">
+                                                            <IconButton aria-label="delete" onClick={() => handleOpen(row, "delete")}>
+                                                                <DeleteOutlined />
+                                                            </IconButton>
+                                                        </Tooltip>
+                                                    </Box>
+                                                </TableCell>
+                                            </TableRow>
+                                        ))
+                                        :
+                                        <TableRow>
+                                            <TableCell colSpan={headCells.length} sx={{ textAlign: "center" }}>
+                                                <Avatar src={nodata} sx={{ margin: "auto", borderRadius: 0, marginBlock: 1, width: 60, height: 60 }}></Avatar>
+                                                <Typography variant="subtitle"><i>Không có đơn hàng</i></Typography>
                                             </TableCell>
                                         </TableRow>
-                                    ))
                             }
                         </TableBody>
                         <TableFooter>
@@ -180,15 +253,10 @@ const Customer = () => {
                                 <TablePagination
                                     rowsPerPageOptions={[5, 10, 25, { label: 'Tất cả', value: -1 }]}
                                     colSpan={headCells.length}
-                                    count={rows.length}
+                                    count={users.length}
                                     rowsPerPage={rowsPerPage}
                                     page={page}
-                                    SelectProps={{
-                                        inputProps: {
-                                            'aria-label': 'Khách hàng mỗi trang',
-                                        },
-                                        native: true,
-                                    }}
+                                    labelRowsPerPage="Số lượng khách hàng mỗi trang:"
                                     onPageChange={handleChangePage}
                                     onRowsPerPageChange={handleChangeRowsPerPage}
                                 />
@@ -200,6 +268,15 @@ const Customer = () => {
             <ModalCustom open={openModal} handleClose={handleClose} width={600}>
                 <CustomerViewer customer={user} state={state} resetPage={getUsers} />
             </ModalCustom>
+            <MenuExport open={openMenuExport} setAnchorEl={setAnchorElExport} anchorEl={anchorElExport} exportObject="user" />
+            <MenuSort
+                open={openMenuSort}
+                setAnchorEl={setAnchorElSort}
+                anchorEl={anchorElSort}
+                cols={headCells.filter(h => h.id !== "userID" && h.id !== "actions")}
+                sort={sort}
+                setSort={setSort}
+            />
         </>
     )
 }
